@@ -1,59 +1,72 @@
 package org.example.project.database
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.example.project.db.AppDatabase
-import org.example.project.models.Pet
+import org.example.project.db.Pet as DbPet
+import Pet as ModelPet
 import org.example.project.models.PetCreateRequest
 
 class PetRepository(private val db: AppDatabase) {
 
-    suspend fun getPetsByShelter(shelterId: Long): List<Pet> =
-        withContext(Dispatchers.IO) {
-            db.petQueries.selectByShelter(shelterId)
-                .executeAsList()
-                .map { it.toModel() }
-        }
+    private val queries = db.petQueries
 
-    suspend fun addPet(req: PetCreateRequest, shelterId: Long): Pet =
-        withContext(Dispatchers.IO) {
+    fun getByShelter(shelterId: Long): List<ModelPet> {
+        return queries.selectByShelter(shelterId)
+            .executeAsList()
+            .map { it.toDTO() }
+    }
 
-            db.petQueries.insertPet(
-                req.name,
-                req.species,
-                req.breed,
-                req.age.toLong(),      // <-- poprawione
-                req.gender,
-                req.size,
-                req.description,
-                "[]",
-                shelterId,
-                1L                      // <-- LONG
-            )
+    fun addPet(req: PetCreateRequest, shelterId: Long): ModelPet {
+        queries.insert(
+            name = req.name,
+            species = req.species,
+            breed = req.breed ?: "",
+            age = req.age.toLong(),
+            gender = req.gender,
+            size = req.size,
+            description = req.description ?: "",
+            photos = req.photos.joinToString(";"),
+            shelterId = shelterId,
+            isAvailable = if (req.isAvailable) 1 else 0
+        )
 
-            // bierzemy rekord z końca (SQLite zwróci ostatni dodany)
-            db.petQueries.selectAll()
-                .executeAsList()
-                .last()
-                .toModel()
-        }
+        val id = queries.lastInsertId().executeAsOne()
 
-    suspend fun deletePet(id: Long) =
-        withContext(Dispatchers.IO) {
-            db.petQueries.deleteById(id)
-        }
+        return ModelPet(
+            id = id,
+            name = req.name,
+            species = req.species,
+            breed = req.breed,
+            age = req.age,
+            gender = req.gender,
+            size = req.size,
+            description = req.description,
+            photos = req.photos,
+            shelterId = shelterId,
+            isAvailable = req.isAvailable
+        )
+    }
+
+    fun getById(id: Long): ModelPet? {
+        return queries.selectById(id)
+            .executeAsOneOrNull()
+            ?.toDTO()
+    }
+
+    fun deletePet(id: Long) {
+        queries.delete(id)
+    }
 }
 
-private fun org.example.project.db.Pet.toModel() = Pet(
-    id = id.toLong(),
+private fun DbPet.toDTO(): ModelPet = ModelPet(
+    id = id,
     name = name,
     species = species,
     breed = breed,
-    age = age.toLong(),  // <-- NULLABLE OK
+    age = age.toInt(),
     gender = gender,
     size = size,
     description = description,
-    photos = emptyList(),
-    shelterId = shelterId.toLong(),
+    photos = photos?.split(";")?.filter { it.isNotBlank() } ?: emptyList(),
+    shelterId = shelterId,
     isAvailable = isAvailable == 1L
 )

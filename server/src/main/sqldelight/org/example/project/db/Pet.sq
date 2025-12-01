@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS Pet (
-    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     species TEXT NOT NULL,
     breed TEXT NOT NULL,
@@ -7,31 +7,24 @@ CREATE TABLE IF NOT EXISTS Pet (
     gender TEXT NOT NULL,
     size TEXT NOT NULL,
     description TEXT NOT NULL,
-    photos TEXT NOT NULL,          -- JSON string of URLs or empty list
+    photos TEXT NOT NULL,
     shelterId INTEGER NOT NULL,
-    isAvailable INTEGER NOT NULL   -- 0 = false, 1 = true
+    isAvailable INTEGER NOT NULL
 );
 
-selectAll:
-SELECT * FROM Pet;
+selectById:
+SELECT * FROM Pet WHERE id = ?;
 
 selectByShelter:
-SELECT * FROM Pet
-WHERE shelterId = ?;
+SELECT * FROM Pet WHERE shelterId = ?;
 
-insertPet:
-INSERT INTO Pet(
-    name, species, breed, age, gender, size, description, photos, shelterId, isAvailable
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+insert:
+INSERT INTO Pet(name, species, breed, age, gender, size, description, photos, shelterId, isAvailable)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
-deleteById:
+delete:
 DELETE FROM Pet WHERE id = ?;
 
-updatePet:
-UPDATE Pet SET
-    name = ?, species = ?, breed = ?, age = ?, gender = ?,
-    size = ?, description = ?, photos = ?, isAvailable = ?
-WHERE id = ?;
-
-lastInsertRowId:
+lastInsertId:
 SELECT last_insert_rowid();
+

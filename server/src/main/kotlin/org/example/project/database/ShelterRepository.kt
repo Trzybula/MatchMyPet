@@ -1,33 +1,34 @@
 package org.example.project.database
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.example.project.db.AppDatabase
-import org.example.project.models.Shelter
+import org.example.project.db.Shelter
+import org.example.project.models.Shelter as ShelterDTO
 
 class ShelterRepository(private val db: AppDatabase) {
 
-    suspend fun login(email: String, pass: String): Shelter? =
-        withContext(Dispatchers.IO) {
-            val row = db.shelterQueries.findByEmail(email).executeAsOneOrNull()
-            if (row != null && row.passwordHash == pass) row.toModel() else null
-        }
+    private val queries = db.shelterQueries
 
-    suspend fun insert(s: Shelter) =
-        withContext(Dispatchers.IO) {
-            db.shelterQueries.insertShelter(
-                s.name,
-                s.email,
-                s.passwordHash,
-                s.address,
-                s.phone,
-                s.description
-            )
-        }
+    fun findByEmail(email: String): ShelterDTO? =
+        queries.findByEmail(email).executeAsOneOrNull()?.toDTO()
+
+    fun findById(id: Long): ShelterDTO? =
+        queries.findById(id).executeAsOneOrNull()?.toDTO()
+
+    fun insert(shelter: ShelterDTO): Long {
+        queries.insert(
+            name = shelter.name,
+            email = shelter.email,
+            passwordHash = shelter.passwordHash,
+            address = shelter.address,
+            phone = shelter.phone,
+            description = shelter.description.toString()
+        )
+        return queries.lastInsertId().executeAsOne()
+    }
 }
 
-private fun org.example.project.db.Shelter.toModel() = Shelter(
-    id = id.toLong(),
+private fun Shelter.toDTO() = ShelterDTO(
+    id = id,
     name = name,
     email = email,
     passwordHash = passwordHash,

@@ -1,5 +1,5 @@
 package org.example.project
-
+import RegisterResponse
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -14,6 +14,7 @@ import org.example.project.database.PetRepository
 import org.example.project.database.ShelterRepository
 import org.example.project.models.*
 import io.ktor.server.plugins.cors.routing.*
+
 fun main() {
     val db = DatabaseFactory.createDatabase()
     val pets = PetRepository(db)
@@ -21,49 +22,74 @@ fun main() {
 
     embeddedServer(Netty, port = 8080) {
         install(ContentNegotiation) { json() }
+
         install(CORS) {
-            anyHost()  // ← NAJWAŻNIEJSZE, żeby wstało
+            anyHost()
+            allowHeader(HttpHeaders.ContentType)
+            allowHeader(HttpHeaders.Authorization)
             allowMethod(HttpMethod.Get)
             allowMethod(HttpMethod.Post)
             allowMethod(HttpMethod.Put)
             allowMethod(HttpMethod.Delete)
             allowMethod(HttpMethod.Options)
-
-            allowHeader(HttpHeaders.ContentType)
-            allowHeader(HttpHeaders.Authorization)
-
             allowCredentials = true
         }
 
         routing {
-
             post("/api/login") {
                 val req = call.receive<LoginRequest>()
-                val ok = shelters.login(req.email, req.passwordHash)
-                if (ok != null) call.respond(HttpStatusCode.OK)
-                else call.respond(HttpStatusCode.Unauthorized)
+                val shelter = shelters.findByEmail(req.email)
+
+                if (shelter != null && shelter.passwordHash == req.passwordHash) {
+                    call.respond(mapOf("shelterId" to shelter.id))
+                } else {
+                    call.respond(HttpStatusCode.Unauthorized)
+                }
             }
 
             get("/api/pets") {
-                call.respond(pets.getPetsByShelter(1L))   // LONG
+                val shelterId = call.request.queryParameters["shelterId"]?.toLong()
+                println("GET /api/pets - shelterId: $shelterId")
+
+                val result = if (shelterId != null) {
+                    val petsList = pets.getByShelter(shelterId)
+                    petsList
+                } else {
+                    println("No shelterId provided")
+                    emptyList()
+                }
+
+                call.respond(result)
             }
 
             post("/api/pets") {
-                val req = call.receive<PetCreateRequest>()
-                val pet = pets.addPet(req, 1L)            // LONG
-                call.respond(pet)
+                try {
+                    val req = call.receive<PetCreateRequest>()
+                    println("POST /api/pets - Request: $req")
+
+                    val shelterId = call.request.queryParameters["shelterId"]?.toLong()
+                        ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing shelterId")
+
+                    val pet = pets.addPet(req, shelterId)
+                    call.respond(pet)
+                } catch (e: Exception) {
+                    println("Error adding pet: ${e.message}")
+                    e.printStackTrace()
+                    call.respond(HttpStatusCode.InternalServerError, "Error adding pet: ${e.message}")
+                }
             }
 
             delete("/api/pets/{id}") {
-                val id = call.parameters["id"]!!.toLong() // LONG
+                val id = call.parameters["id"]!!.toLong()
                 pets.deletePet(id)
                 call.respond(HttpStatusCode.OK)
             }
 
             post("/api/register") {
                 val req = call.receive<Shelter>()
-                shelters.insert(req)
-                call.respond(HttpStatusCode.OK)
+                val shelterId = shelters.insert(req)
+
+                call.respond(RegisterResponse(shelterId))
             }
         }
     }.start(wait = true)

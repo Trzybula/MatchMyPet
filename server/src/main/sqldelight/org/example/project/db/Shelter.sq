@@ -1,20 +1,23 @@
 CREATE TABLE IF NOT EXISTS Shelter (
-    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL,
     passwordHash TEXT NOT NULL,
     address TEXT NOT NULL,
     phone TEXT NOT NULL,
     description TEXT NOT NULL
 );
 
-insertShelter:
-INSERT INTO Shelter(
-    name, email, passwordHash, address, phone, description
-) VALUES (?, ?, ?, ?, ?, ?);
-
 findByEmail:
 SELECT * FROM Shelter WHERE email = ?;
 
-selectAll:
-SELECT * FROM Shelter;
+findById:
+SELECT * FROM Shelter WHERE id = ?;
+
+insert:
+INSERT INTO Shelter(name, email, passwordHash, address, phone, description)
+VALUES (?, ?, ?, ?, ?, ?);
+
+lastInsertId:
+SELECT last_insert_rowid();
+
