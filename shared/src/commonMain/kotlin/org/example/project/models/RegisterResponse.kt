@@ -1,4 +1,6 @@
-package org.example.project.models
+import kotlinx.serialization.Serializable
 
-class RegisterResponse {
-}
+@Serializable
+data class RegisterResponse(
+    val shelterId: Long
+)
