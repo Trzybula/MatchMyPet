@@ -1,3 +1,14 @@
+# MatchMyPet - Development Setup
+
+This repository contains the **MatchMyPet** application built with:
+- **Kotlin Multiplatform (Compose Multiplatform)** for the client
+- **Ktor** backend
+- **SQLDelight** database
+
+Below are the instructions for running the project locally in development mode.
+
+---
+
 This is a Kotlin Multiplatform project targeting Web, Server.
 
 * [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
