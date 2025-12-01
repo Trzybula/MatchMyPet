@@ -15,14 +15,13 @@ import org.example.project.network.ApiClient
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    onSuccess: () -> Unit,
+    onSuccess: (Long) -> Unit,
     onRegister: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
-
     val scope = rememberCoroutineScope()
 
     Column(
@@ -76,9 +75,12 @@ fun LoginScreen(
 
                 scope.launch {
                     try {
-                        val ok = ApiClient.login(email, password)
-                        if (ok) {
-                            onSuccess()
+                        val resp = ApiClient.login(email, password)
+
+                        val id = resp.shelterId
+
+                        if (id != null) {
+                            onSuccess(id)
                         } else {
                             error = "Nieprawidłowe dane logowania"
                         }
