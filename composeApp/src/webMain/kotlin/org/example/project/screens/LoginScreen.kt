@@ -10,13 +10,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.example.project.models.LoginResponse
 import org.example.project.network.ApiClient
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    onSuccess: (Long) -> Unit,
-    onRegister: () -> Unit
+    onSuccess: (LoginResponse) -> Unit,
+    onRegisterShelter: () -> Unit,
+    onRegisterUser: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -29,7 +31,6 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Text("Logowanie", style = MaterialTheme.typography.headlineMedium)
 
         Spacer(Modifier.height(20.dp))
@@ -75,17 +76,10 @@ fun LoginScreen(
 
                 scope.launch {
                     try {
-                        val resp = ApiClient.login(email, password)
-
-                        val id = resp.shelterId
-
-                        if (id != null) {
-                            onSuccess(id)
-                        } else {
-                            error = "Nieprawidłowe dane logowania"
-                        }
+                        val response = ApiClient.login(email, password)
+                        onSuccess(response)
                     } catch (e: Exception) {
-                        error = "Błąd połączenia: ${e.message}"
+                        error = "Błąd logowania: ${e.message}"
                     } finally {
                         isLoading = false
                     }
@@ -106,8 +100,12 @@ fun LoginScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        TextButton(onClick = onRegister) {
-            Text("Stwórz konto")
+        TextButton(onClick = onRegisterShelter) {
+            Text("Stwórz konto dla schroniska")
+        }
+
+        TextButton(onClick = onRegisterUser) {
+            Text("Stwórz konto dla użytkownika")
         }
     }
 }

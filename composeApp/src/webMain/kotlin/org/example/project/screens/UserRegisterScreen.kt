@@ -8,19 +8,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.example.project.network.ApiClient
-import org.example.project.models.Shelter
+import org.example.project.models.User
 
 @Composable
-fun RegisterScreen(
+fun UserRegisterScreen(
     onSuccess: (Long) -> Unit,
     onBack: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
+    var surname by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -32,12 +32,19 @@ fun RegisterScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Rejestracja schroniska", style = MaterialTheme.typography.headlineMedium)
+        Text("Rejestracja użytkownika", style = MaterialTheme.typography.headlineMedium)
 
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("Nazwa schroniska *") },
+            label = { Text("Imię *") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = surname,
+            onValueChange = { surname = it },
+            label = { Text("Nazwisko *") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -69,15 +76,6 @@ fun RegisterScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        OutlinedTextField(
-            value = description,
-            onValueChange = { description = it },
-            label = { Text("Opis") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = false,
-            maxLines = 3
-        )
-
         Button(
             onClick = {
                 if (name.isBlank() || email.isBlank() || password.isBlank() ||
@@ -91,20 +89,20 @@ fun RegisterScreen(
 
                 scope.launch {
                     try {
-                        val shelter = Shelter(
+                        val user = User(
                             id = 0,
                             name = name.trim(),
+                            surname = surname.trim(),
                             email = email.trim(),
                             passwordHash = password,
                             address = address.trim(),
-                            phone = phone.trim(),
-                            description = description.trim()
+                            phone = phone.trim()
                         )
 
-                        val shelterId = ApiClient.registerShelter(shelter)
-                        println("Zarejestrowano schronisko z ID: $shelterId")
+                        val userId = ApiClient.registerUser(user)
+                        println("Zarejestrowano user z ID: $userId")
 
-                        onSuccess(shelterId!!)
+                        onSuccess(userId!!)
 
                     } catch (e: Exception) {
                         error = "Błąd rejestracji: ${e.message ?: "Nieznany błąd"}"
@@ -118,7 +116,7 @@ fun RegisterScreen(
             modifier = Modifier.fillMaxWidth(),
             enabled = !isLoading
         ) {
-            if (isLoading) Text("Rejestracja jest w toku") else Text("Zarejestruj schronisko")
+            if (isLoading) Text("Rejestracja jest w toku") else Text("Zarejestruj się")
         }
 
         if (error != null) {

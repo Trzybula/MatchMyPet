@@ -1,0 +1,39 @@
+-- Message.sq
+CREATE TABLE IF NOT EXISTS Message (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    petId INTEGER NOT NULL,
+    shelterId INTEGER NOT NULL,
+    userId INTEGER NOT NULL,
+    userName TEXT NOT NULL,
+    userEmail TEXT NOT NULL,
+    userPhone TEXT NOT NULL,
+    messageText TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    isRead INTEGER NOT NULL DEFAULT 0
+);
+
+insertMessage:
+INSERT INTO Message(petId, shelterId, userId, userName, userEmail, userPhone, messageText, createdAt, isRead)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+getMessagesByShelter:
+SELECT * FROM Message WHERE shelterId = ? ORDER BY createdAt DESC;
+
+getMessagesByUser:
+SELECT * FROM Message WHERE userId = ? ORDER BY createdAt DESC;
+
+getUnreadCount:
+SELECT COUNT(*) FROM Message WHERE shelterId = ? AND isRead = 0;
+
+lastInsertId:
+SELECT last_insert_rowid();
+
+markAsRead:
+UPDATE Message SET isRead = ? WHERE id = ?;
+
+deleteMessage:
+DELETE FROM Message WHERE id = ?;
+
+-- Alternatywnie:
+getMaxId:
+SELECT MAX(id) max_id FROM Message;
