@@ -15,14 +15,17 @@ class ShelterRepository(private val db: AppDatabase) {
         queries.findById(id).executeAsOneOrNull()?.toDTO()
 
     fun insert(shelter: ShelterDTO): Long {
-        queries.insert(
-            name = shelter.name,
-            email = shelter.email,
-            passwordHash = shelter.passwordHash,
-            address = shelter.address,
-            phone = shelter.phone,
-            description = shelter.description.toString()
-        )
+        db.transaction {
+            queries.insert(
+                name = shelter.name,
+                email = shelter.email,
+                passwordHash = shelter.passwordHash,
+                address = shelter.address,
+                phone = shelter.phone,
+                description = shelter.description.toString()
+            )
+        }
+
         return queries.lastInsertId().executeAsOne()
     }
 }

@@ -1,3 +1,4 @@
+-- Pet.sq
 CREATE TABLE IF NOT EXISTS Pet (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -18,6 +19,9 @@ SELECT * FROM Pet WHERE id = ?;
 selectByShelter:
 SELECT * FROM Pet WHERE shelterId = ?;
 
+selectAll:
+SELECT * FROM Pet ORDER BY id DESC;
+
 insert:
 INSERT INTO Pet(name, species, breed, age, gender, size, description, photos, shelterId, isAvailable)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
@@ -27,4 +31,12 @@ DELETE FROM Pet WHERE id = ?;
 
 lastInsertId:
 SELECT last_insert_rowid();
+
+getAvailablePets:
+SELECT * FROM Pet WHERE isAvailable = 1;
+
+update:
+UPDATE Pet
+SET name = ?, species = ?, breed = ?, age = ?, gender = ?, size = ?, description = ?, isAvailable = ?
+WHERE id = ?;
 
